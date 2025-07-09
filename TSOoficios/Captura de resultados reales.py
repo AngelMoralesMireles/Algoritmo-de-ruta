@@ -45,13 +45,13 @@ prioridad_total = df_entregadas["Valor"].sum()
 conteo_prioridades = df_entregadas["Prioridad"].value_counts()
 
 # Mostrar resultados
-print("📦 Entregas realizadas (en orden original, hasta 480 minutos):")
+print(" Entregas realizadas (en orden original, hasta 480 minutos):")
 print(df_entregadas[["Hora de llegada", "Dirección", "Zona", "Prioridad", "TiempoEstimado"]])
 
 print(f"\n⏱ Tiempo total utilizado: {tiempo_acumulado:.2f} minutos")
 print(f"⭐ Prioridad total acumulada: {prioridad_total}")
 
-print("\n📊 Cantidad de entregas por prioridad:")
+print("\n Cantidad de entregas por prioridad:")
 print(f"Alta : {conteo_prioridades.get('Alta', 0)}")
 print(f"Media: {conteo_prioridades.get('Media', 0)}")
 print(f"Baja : {conteo_prioridades.get('Baja', 0)}")

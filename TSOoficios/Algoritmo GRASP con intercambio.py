@@ -70,21 +70,21 @@ def grasp_2intercambio(df, capacidad, iteraciones=500):
 solucion_final, tiempo_usado, prioridad_total = grasp_2intercambio(df_dia2, capacidad_maxima)
 
 # Mostrar resultados
-print("📦 Ruta óptima encontrada:")
+print(" Ruta óptima encontrada:")
 print(solucion_final[["Hora de llegada", "Dirección", "Zona", "Prioridad", "TiempoEstimado"]])
 
 print(f"\n⏱ Tiempo total utilizado: {tiempo_usado:.2f} minutos")
 print(f"⭐ Prioridad total acumulada: {prioridad_total}")
 
-# 📊 Mostrar conteo por prioridad
+#  Mostrar conteo por prioridad
 prioridades = solucion_final["Prioridad"].value_counts()
 baja = prioridades.get("Baja", 0)
 media = prioridades.get("Media", 0)
 alta = prioridades.get("Alta", 0)
 total = len(solucion_final)
 
-print(f"\n📊 Entregas por prioridad:")
-print(f"🔴 Baja: {baja}")
-print(f"🟡 Media: {media}")
-print(f"🟢 Alta: {alta}")
-print(f"📦 Total entregas: {total}")
+print(f"\n Entregas por prioridad:")
+print(f" Baja: {baja}")
+print(f" Media: {media}")
+print(f" Alta: {alta}")
+print(f" Total entregas: {total}")

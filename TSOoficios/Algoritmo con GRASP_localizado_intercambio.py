@@ -71,7 +71,7 @@ def grasp_2intercambio(df, capacidad, iteraciones=500):
 solucion_final, tiempo_usado, prioridad_total = grasp_2intercambio(df_dia2, capacidad_maxima)
 
 # Mostrar resultados
-print("📦 Ruta óptima encontrada:")
+print(" Ruta óptima encontrada:")
 print(solucion_final[["Hora de llegada", "Dirección", "Zona", "Prioridad", "TiempoEstimado"]])
 
 print(f"\n⏱ Tiempo total utilizado: {tiempo_usado:.2f} minutos")
@@ -84,13 +84,13 @@ media = prioridades.get("Media", 0)
 alta = prioridades.get("Alta", 0)
 total = len(solucion_final)
 
-print(f"\n📊 Entregas por prioridad:")
-print(f"🔴 Baja: {baja}")
-print(f"🟡 Media: {media}")
-print(f"🟢 Alta: {alta}")
-print(f"📦 Total entregas: {total}")
+print(f"\n Entregas por prioridad:")
+print(f" Baja: {baja}")
+print(f" Media: {media}")
+print(f" Alta: {alta}")
+print(f" Total entregas: {total}")
 
 # (Opcional) Mostrar cuántas entregas de alta prioridad fueron posibles
 total_alta_disponible = df_dia2[df_dia2["Prioridad"] == "Alta"].shape[0]
 porcentaje_alta = (alta / total_alta_disponible) * 100 if total_alta_disponible > 0 else 0
-print(f"\n📈 % de entregas de alta prioridad realizadas: {porcentaje_alta:.2f}% de {total_alta_disponible}")
+print(f"\n % de entregas de alta prioridad realizadas: {porcentaje_alta:.2f}% de {total_alta_disponible}")
