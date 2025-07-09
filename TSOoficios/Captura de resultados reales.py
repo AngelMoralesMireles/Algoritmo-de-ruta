@@ -1,58 +1,100 @@
 import pandas as pd
+from datetime import datetime
 
-# Cargar el archivo Excel (cambiar 'sheet_name' si es necesario)
-archivo = "BD Registros.xlsx"
-df = pd.read_excel(archivo, sheet_name= "Datos reales")  # o sheet_name="Hoja1" si tiene nombre
+# Cargar archivo Excel
+archivo = "Registros Algoritmo.xlsx"
+df = pd.read_excel(archivo, sheet_name="Hoja1")
 
-# Filtrar solo Día 2
-df_dia2 = df[df["Día"] == 2].copy()
+# Estandarizar valores en la columna "Prioridad"
+df["Prioridad"] = df["Prioridad"].astype(str).str.strip().str.capitalize()
 
-# Limpiar columna de tiempo estimado
-df_dia2["TiempoEstimado"] = (
-    df_dia2["Tiempo estimado entrega (min)"]
-    .astype(str)
-    .str.strip()
-    .replace("NE", pd.NA)
-)
-df_dia2["TiempoEstimado"] = pd.to_numeric(df_dia2["TiempoEstimado"], errors="coerce")
+# Seleccionar día 5
+dia_objetivo = 5
 
-# Eliminar filas sin tiempo estimado
-df_dia2 = df_dia2.dropna(subset=["TiempoEstimado"])
+# Filtrar entregas con prioridad Alta, Media o Baja y Día 5
+df_dia = df[(df["Día"] == dia_objetivo) & (df["Prioridad"].isin(["Alta", "Media", "Baja"]))].copy()
 
-# Asignar valor por prioridad
-df_dia2["Valor"] = df_dia2["Prioridad"].apply(lambda p: 3 if p == "Alta" else (2 if p == "Media" else 1))
+# Crear columna "Entregado" (True si no es "NE", False si es "NE")
+df_dia["Entregado"] = ~df_dia["Se entregó"].astype(str).str.upper().eq("NE")
 
-# Limite de tiempo (8 horas = 480 minutos)
-limite_minutos = 480
-tiempo_acumulado = 0
-entregas_realizadas = []
+# Filtrar sólo las entregas que efectivamente se entregaron para la ruta
+df_entregadas = df_dia[df_dia["Entregado"]].copy()
 
-# Recorrer entregas en el mismo orden y detener cuando se excede el límite
-for _, row in df_dia2.iterrows():
-    if tiempo_acumulado + row["TiempoEstimado"] <= limite_minutos:
-        entregas_realizadas.append(row)
-        tiempo_acumulado += row["TiempoEstimado"]
-    else:
-        break
+# Convertir "Tiempo estimado entrega (min)" a numérico y limpiar
+df_entregadas["TiempoEstimado"] = pd.to_numeric(df_entregadas["Tiempo estimado entrega (min)"], errors="coerce")
+df_entregadas = df_entregadas.dropna(subset=["TiempoEstimado"])
+df_entregadas = df_entregadas[df_entregadas["TiempoEstimado"] > 0]
 
-# Crear DataFrame con entregas hechas
-df_entregadas = pd.DataFrame(entregas_realizadas)
+# Función para convertir hora a minutos
+def hora_a_minutos(hora_str):
+    try:
+        fmt = "%H:%M:%S" if len(hora_str.split(":")) == 3 else "%H:%M"
+        t = datetime.strptime(hora_str.strip(), fmt)
+        return t.hour * 60 + t.minute
+    except:
+        return 0
 
-# Calcular prioridad acumulada
-prioridad_total = df_entregadas["Valor"].sum()
+df_entregadas["HoraCierreMin"] = df_entregadas["HoraCierre"].astype(str).apply(hora_a_minutos)
 
-# Contar entregas por prioridad
-conteo_prioridades = df_entregadas["Prioridad"].value_counts()
+# Mostrar la ruta original (orden Excel) para entregas válidas
+print(f"\n📍 Ruta original del usuario para el día {dia_objetivo} (solo entregas efectivas):\n")
+print(df_entregadas[["Hora de llegada", "Dirección", "Zona", "Prioridad", "Tiempo estimado entrega (min)", "HoraCierre", "Se entregó", "Entregado"]])
 
-# Mostrar resultados
-print(" Entregas realizadas (en orden original, hasta 480 minutos):")
-print(df_entregadas[["Hora de llegada", "Dirección", "Zona", "Prioridad", "TiempoEstimado"]])
+# Calcular tiempos usando sólo entregas efectivas
+tiempo_entregas = df_entregadas["TiempoEstimado"].sum()
+tiempo_regreso = 15
+tiempo_total = tiempo_entregas + tiempo_regreso
 
-print(f"\n⏱ Tiempo total utilizado: {tiempo_acumulado:.2f} minutos")
-print(f"⭐ Prioridad total acumulada: {prioridad_total}")
+print(f"\n⏱ Tiempo total utilizado en entregas: {tiempo_entregas:.2f} minutos")
+print(f"⏱ Tiempo estimado de regreso a la base: {tiempo_regreso} minutos")
+print(f"⏱ Tiempo total jornada estimado (entregas + regreso): {tiempo_total:.2f} minutos")
+print(f"⏰ Hora estimada de inicio: 08:00")
 
-print("\n Cantidad de entregas por prioridad:")
-print(f"Alta : {conteo_prioridades.get('Alta', 0)}")
-print(f"Media: {conteo_prioridades.get('Media', 0)}")
-print(f"Baja : {conteo_prioridades.get('Baja', 0)}")
-print(f"Total: {len(df_entregadas)}")
+# Calcular hora de llegada a la base desde la última entrega efectuada
+def hora_str_a_minutos(hora):
+    try:
+        hora = str(hora).strip().lower().replace(".", "")
+        if "am" in hora or "pm" in hora:
+            return datetime.strptime(hora, "%I:%M %p").hour * 60 + datetime.strptime(hora, "%I:%M %p").minute
+        elif len(hora.split(":")) == 3:
+            return datetime.strptime(hora, "%H:%M:%S").hour * 60 + datetime.strptime(hora, "%H:%M:%S").minute
+        elif len(hora.split(":")) == 2:
+            return datetime.strptime(hora, "%H:%M").hour * 60 + datetime.strptime(hora, "%H:%M").minute
+    except:
+        return None
+
+hora_ultima_entrega_str = df_entregadas["Hora de llegada"].iloc[-1]
+minutos_ultima_entrega = hora_str_a_minutos(hora_ultima_entrega_str)
+
+if minutos_ultima_entrega is not None:
+    minutos_llegada_base = minutos_ultima_entrega + tiempo_regreso
+    hora_llegada_base = f"{int(minutos_llegada_base // 60):02}:{int(minutos_llegada_base % 60):02}"
+    print(f"🛑 Hora estimada de llegada a base (desde última entrega): {hora_llegada_base}")
+else:
+    print("⚠️ No se pudo calcular la hora de regreso a base desde la última entrega (formato inválido).")
+
+# Estadísticas con base en todo el día 5 (sin filtrar por entregas)
+prioridades_totales = df_dia["Prioridad"].value_counts()
+total_entregas_dia = len(df_dia)
+total_entregas_alta_prioridad = df_dia[df_dia["Prioridad"] == "Alta"].shape[0]
+
+# Estadísticas con base en entregas realizadas
+prioridades_entregadas = df_entregadas["Prioridad"].value_counts()
+total_entregadas = len(df_entregadas)
+
+print(f"\n📊 Entregas por prioridad (original):")
+print(f"🔴 Baja: {prioridades_entregadas.get('Baja', 0)}")
+print(f"🟡 Media: {prioridades_entregadas.get('Media', 0)}")
+print(f"🟢 Alta: {prioridades_entregadas.get('Alta', 0)}")
+print(f"📦 Total entregas realizadas: {total_entregadas}")
+
+# % de entregas alta prioridad realizadas (entregadas sobre total)
+porcentaje_alta = (prioridades_entregadas.get("Alta", 0) / total_entregas_alta_prioridad) * 100 if total_entregas_alta_prioridad > 0 else 0
+print(f"\n📈 % de entregas de alta prioridad realizadas (original): {porcentaje_alta:.2f}% de {total_entregas_alta_prioridad}")
+
+# Estado entregas (basado en todo el día 5)
+entregadas_real = df_dia["Entregado"].sum()
+no_entregadas_real = total_entregas_dia - entregadas_real
+print(f"\n📋 Estado de entregas:")
+print(f"✅ Entregadas: {entregadas_real} ({entregadas_real / total_entregas_dia * 100:.2f}%)")
+print(f"❌ No entregadas: {no_entregadas_real} ({no_entregadas_real / total_entregas_dia * 100:.2f}%)")
