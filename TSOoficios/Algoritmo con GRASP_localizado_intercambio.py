@@ -15,7 +15,11 @@ print(df.columns.tolist())
 
 print("\n Total de registros en el archivo:", len(df))
 print(" Valores únicos en 'Día':", df["Día"].unique())
+<<<<<<< HEAD
 print("Valores únicos en 'Prioridad':", df["Prioridad"].unique())
+=======
+print(" Valores únicos en 'Prioridad':", df["Prioridad"].unique())
+>>>>>>> c21f9423852d432f3848198d7603c19d703d59b5
 
 # Punto de inicio para el día 5
 dia_objetivo = 5
@@ -67,8 +71,13 @@ df_dia["HoraCierreMin"] = df_dia["HoraCierre"].astype(str).apply(hora_a_minutos)
 df_dia["Valor"] = df_dia["Prioridad"].map({"Alta": 3, "Media": 2, "Baja": 1})
 df_dia["Puntaje"] = df_dia["Valor"] * 10000 - df_dia["HoraCierreMin"]
 
+<<<<<<< HEAD
 print("\n Zonas detectadas:", df_dia["Zona"].unique())
 print(" Entradas finales listas para algoritmo:", len(df_dia))
+=======
+print("\nZonas detectadas:", df_dia["Zona"].unique())
+print("Entradas finales listas para algoritmo:", len(df_dia))
+>>>>>>> c21f9423852d432f3848198d7603c19d703d59b5
 
 # Parámetros
 capacidad_maxima = 540  # 9 horas
@@ -164,20 +173,33 @@ def grasp_ruta(df, capacidad, inicio=480, iteraciones=500):
 solucion_final, llegadas, prioridad_total, tiempo_regreso = grasp_ruta(df_dia, capacidad_maxima, hora_inicio)
 
 # Mostrar resultados
+<<<<<<< HEAD
 print(f"\n Punto de inicio de la ruta: {direccion_inicio}")
 print("\n Ruta óptima encontrada:")
+=======
+print(f"\nPunto de inicio de la ruta: {direccion_inicio}")
+print("\nRuta óptima encontrada:")
+>>>>>>> c21f9423852d432f3848198d7603c19d703d59b5
 print(solucion_final[["Hora de llegada", "Dirección", "Zona", "Prioridad", "TiempoEstimado", "HoraCierre"]])
 
 tiempo_entregas = sum(solucion_final["TiempoEstimado"])
 tiempo_total = tiempo_entregas + tiempo_regreso
+<<<<<<< HEAD
 print(f"\n Tiempo total utilizado en entregas: {tiempo_entregas:.2f} minutos")
 print(f" Tiempo estimado de regreso a la base: {tiempo_regreso} minutos")
 print(f" Tiempo total jornada estimado (entregas + regreso): {tiempo_total:.2f} minutos")
 print(f" Hora estimada de inicio: 08:00")
+=======
+print(f"\nTiempo total utilizado en entregas: {tiempo_entregas:.2f} minutos")
+print(f"Tiempo estimado de regreso a la base: {tiempo_regreso} minutos")
+print(f"Tiempo total jornada estimado (entregas + regreso): {tiempo_total:.2f} minutos")
+print(f"Hora estimada de inicio: 08:00")
+>>>>>>> c21f9423852d432f3848198d7603c19d703d59b5
 
 if llegadas:
     hora_regreso = llegadas[-1] + solucion_final.iloc[-1]["TiempoEstimado"] + tiempo_regreso
     h_regreso_str = f"{hora_regreso//60:02.0f}:{hora_regreso%60:02.0f}"
+<<<<<<< HEAD
     print(f" Hora estimada de llegada a base (regreso): {h_regreso_str}")
 else:
     print(" No hay entregas programadas.")
@@ -189,6 +211,19 @@ print(f" Baja: {prioridades.get('Baja', 0)}")
 print(f" Media: {prioridades.get('Media', 0)}")
 print(f" Alta: {prioridades.get('Alta', 0)}")
 print(f" Total entregas: {len(solucion_final)}")
+=======
+    print(f"Hora estimada de llegada a base (regreso): {h_regreso_str}")
+else:
+    print("No hay entregas programadas.")
+
+# Estadísticas de prioridad
+prioridades = solucion_final["Prioridad"].value_counts()
+print(f"\nEntregas por prioridad:")
+print(f"Baja: {prioridades.get('Baja', 0)}")
+print(f"Media: {prioridades.get('Media', 0)}")
+print(f"Alta: {prioridades.get('Alta', 0)}")
+print(f"Total entregas: {len(solucion_final)}")
+>>>>>>> c21f9423852d432f3848198d7603c19d703d59b5
 
 total_alta = df_dia[df_dia["Prioridad"] == "Alta"].shape[0]
 porcentaje_alta = (prioridades.get("Alta", 0) / total_alta) * 100 if total_alta > 0 else 0
