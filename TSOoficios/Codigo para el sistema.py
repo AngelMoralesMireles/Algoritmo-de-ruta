@@ -46,8 +46,8 @@ print(f"📆 Fecha objetivo de trabajo: {fecha_objetivo}")
 
 # Filtrar datos válidos
 df_dia = df[(df["fecha_folio"] == fecha_objetivo) & (df["prioridad"].isin(["Alta", "Media", "Baja"]))].copy()
-df_dia["Entregado"] = df_dia["entregado"].isin(["true", "1", "si", "yes"])
-df_pendientes = df_dia[~df_dia["Entregado"]].copy()
+df_dia["EntregadoBool"] = df_dia["entregado"].isin(["true", "1", "si", "yes"])
+df_pendientes = df_dia[~df_dia["EntregadoBool"]].copy()
 
 if df_pendientes.empty:
     print("✅ Todos los oficios ya fueron entregados para esta fecha.")
@@ -142,7 +142,7 @@ def grasp_ruta(df, capacidad, inicio=480, iteraciones=500):
             zona_final = df.loc[mejor_solucion[-1], "zona"]
             mejor_tiempo_regreso = tiempo_regreso_por_zona.get(zona_final, 30)
 
-    df_resultado = df.loc[mejor_solucion].copy().reset_index(drop=True)
+    df_resultado = df.loc[mejor_solucion].copy().reset_index()
     df_resultado["Hora de llegada"] = [f"{h//60:02d}:{h%60:02d}" for h in mejor_horas_llegada]
     return df_resultado, mejor_horas_llegada, mejor_valor, mejor_tiempo_regreso
 
@@ -159,8 +159,8 @@ prioridades = solucion_final["prioridad"].value_counts()
 total_alta = df_pendientes[df_pendientes["prioridad"] == "Alta"].shape[0]
 porcentaje_alta = (prioridades.get("Alta", 0) / total_alta) * 100 if total_alta > 0 else 0
 
-# --- Guardar oficios NO entregados ---
-oficios_entregados_idx = solucion_final.index
+# Guardar oficios NO entregados
+oficios_entregados_idx = solucion_final["index"]
 oficios_no_entregados_idx = df_pendientes.index.difference(oficios_entregados_idx)
 if len(oficios_no_entregados_idx) > 0:
     fecha_nueva = siguiente_dia_laboral(fecha_objetivo)
@@ -168,11 +168,11 @@ if len(oficios_no_entregados_idx) > 0:
     df.loc[oficios_no_entregados_idx, "entregado"] = "false"
     nombre_archivo = f"oficios_pendientes_{fecha_nueva}.xlsx"
     df.loc[oficios_no_entregados_idx].to_excel(nombre_archivo, index=False)
-    print(f"\n📁 Oficios NO entregados guardados para el {fecha_nueva} en: {nombre_archivo}")
+    print(f"\n📄 Oficios NO entregados guardados para el {fecha_nueva} en: {nombre_archivo}")
 else:
     print("\n✅ Todos los oficios fueron entregados hoy.")
 
-# --- Crear resumen ---
+# Crear resumen
 resumen_datos = {
     "Fecha objetivo": [fecha_objetivo],
     "Entregas realizadas": [len(solucion_final)],
@@ -186,10 +186,18 @@ resumen_datos = {
 }
 df_resumen = pd.DataFrame(resumen_datos)
 
-# --- Guardar todo en un solo Excel con dos hojas ---
+# Limpiar columnas para exportar
+columnas_finales = [
+    "index", "nombre", "direccion", "zona",
+    "hora_apertura", "hora_cierre", "tiempo_estimado_entrega",
+    "prioridad", "fecha_folio", "entregado", "Hora de llegada"
+]
+df_ruta_limpia = solucion_final[columnas_finales].rename(columns={"index": "oficio"})
+
+# Guardar Excel con hojas limpias
 nombre_archivo_completo = f"resultado_entregas_{fecha_objetivo}.xlsx"
 with pd.ExcelWriter(nombre_archivo_completo, engine='xlsxwriter') as writer:
-    solucion_final.to_excel(writer, sheet_name="Ruta óptima", index=False)
+    df_ruta_limpia.to_excel(writer, sheet_name="Ruta óptima", index=False)
     df_resumen.to_excel(writer, sheet_name="Resumen", index=False)
 
 print(f"\n💾 Ruta óptima y resumen guardados en '{nombre_archivo_completo}'")
