@@ -73,8 +73,8 @@ solucion_final, tiempo_usado, prioridad_total = grasp_2intercambio(df_dia2, capa
 print(" Ruta óptima encontrada:")
 print(solucion_final[["Hora de llegada", "Dirección", "Zona", "Prioridad", "TiempoEstimado"]])
 
-print(f"\n⏱ Tiempo total utilizado: {tiempo_usado:.2f} minutos")
-print(f"⭐ Prioridad total acumulada: {prioridad_total}")
+print(f"\n Tiempo total utilizado: {tiempo_usado:.2f} minutos")
+print(f" Prioridad total acumulada: {prioridad_total}")
 
 #  Mostrar conteo por prioridad
 prioridades = solucion_final["Prioridad"].value_counts()
