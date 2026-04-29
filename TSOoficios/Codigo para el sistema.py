@@ -42,7 +42,7 @@ df["fecha_folio"] = pd.to_datetime(df["fecha_folio"], errors="coerce").dt.date
 
 # Obtener fecha objetivo
 fecha_objetivo = df["fecha_folio"].dropna().min()
-print(f"📆 Fecha objetivo de trabajo: {fecha_objetivo}")
+print(f" Fecha objetivo de trabajo: {fecha_objetivo}")
 
 # Filtrar datos válidos
 df_dia = df[(df["fecha_folio"] == fecha_objetivo) & (df["prioridad"].isin(["Alta", "Media", "Baja"]))].copy()
@@ -50,7 +50,7 @@ df_dia["Entregado"] = df_dia["entregado"].isin(["true", "1", "si", "yes"])
 df_pendientes = df_dia[~df_dia["Entregado"]].copy()
 
 if df_pendientes.empty:
-    print("✅ Todos los oficios ya fueron entregados para esta fecha.")
+    print(" Todos los oficios ya fueron entregados para esta fecha.")
     exit()
 
 df_pendientes["TiempoEstimado"] = df_pendientes["tiempo_estimado_entrega"].apply(tiempo_a_minutos)
@@ -149,7 +149,7 @@ def grasp_ruta(df, capacidad, inicio=480, iteraciones=500):
 # Ejecutar GRASP
 solucion_final, llegadas, prioridad_total, tiempo_regreso = grasp_ruta(df_pendientes, capacidad_maxima, hora_inicio)
 
-print(f"\n📦 Ruta óptima encontrada con {len(solucion_final)} entregas:")
+print(f"\n Ruta óptima encontrada con {len(solucion_final)} entregas:")
 print(solucion_final[["Hora de llegada", "direccion", "zona", "prioridad", "tiempo_estimado_entrega", "hora_cierre"]])
 
 tiempo_entregas = sum(solucion_final["TiempoEstimado"])
@@ -168,9 +168,9 @@ if len(oficios_no_entregados_idx) > 0:
     df.loc[oficios_no_entregados_idx, "entregado"] = "false"
     nombre_archivo = f"oficios_pendientes_{fecha_nueva}.xlsx"
     df.loc[oficios_no_entregados_idx].to_excel(nombre_archivo, index=False)
-    print(f"\n📁 Oficios NO entregados guardados para el {fecha_nueva} en: {nombre_archivo}")
+    print(f"\n Oficios NO entregados guardados para el {fecha_nueva} en: {nombre_archivo}")
 else:
-    print("\n✅ Todos los oficios fueron entregados hoy.")
+    print("\n Todos los oficios fueron entregados hoy.")
 
 # --- Crear resumen ---
 resumen_datos = {
@@ -192,4 +192,4 @@ with pd.ExcelWriter(nombre_archivo_completo, engine='xlsxwriter') as writer:
     solucion_final.to_excel(writer, sheet_name="Ruta óptima", index=False)
     df_resumen.to_excel(writer, sheet_name="Resumen", index=False)
 
-print(f"\n💾 Ruta óptima y resumen guardados en '{nombre_archivo_completo}'")
+print(f"\n Ruta óptima y resumen guardados en '{nombre_archivo_completo}'")
